@@ -1,29 +1,63 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\LoanController;
 
-
+/*
+|--------------------------------------------------------------------------
+| AUTH
+|--------------------------------------------------------------------------
+*/
 Route::get('/', [AuthController::class, 'loginForm']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout']);
 Route::get('/dashboard', [AuthController::class, 'dashboard']);
+
+/*
+|--------------------------------------------------------------------------
+| MASTER DATA
+|--------------------------------------------------------------------------
+*/
 Route::resource('/users', UserController::class);
 Route::resource('/books', BookController::class);
-// USER PINJAM
+
+/*
+|--------------------------------------------------------------------------
+| USER ACTION
+|--------------------------------------------------------------------------
+*/
+
+// pinjam buku
 Route::post('/pinjam/{id}', [LoanController::class, 'store']);
 
-// ADMIN
+// request pengembalian
+Route::post('/return-request/{id}', [LoanController::class, 'requestReturn']);
+
+// lihat pinjaman sendiri
+Route::get('/my-loans', [LoanController::class, 'myLoans']);
+
+// history user
+Route::get('/history', [LoanController::class, 'history']);
+
+
+/*
+|--------------------------------------------------------------------------
+| ADMIN ACTION
+|--------------------------------------------------------------------------
+*/
+
+// lihat semua peminjaman
 Route::get('/loans', [LoanController::class, 'index']);
+
+// approve / reject peminjaman
 Route::post('/loans/{id}/approve', [LoanController::class, 'approve']);
 Route::post('/loans/{id}/reject', [LoanController::class, 'reject']);
-Route::get('/history', [LoanController::class, 'history']);
-Route::post('/loans/{id}/return', [LoanController::class, 'return']);
 
-Route::post('/return-request/{id}', [LoanController::class, 'requestReturn']);
+// halaman approval pengembalian
+Route::get('/loans/return', [LoanController::class, 'returnIndex']);
+
+// approve pengembalian
 Route::post('/approve-return/{id}', [LoanController::class, 'approveReturn']);
-Route::get('/loans/return', [LoanController::class, 'returnRequests']);
-Route::get('/my-loans', [LoanController::class, 'myLoans']);
-Route::post('/return/{id}', [LoanController::class, 'returnBook']); 

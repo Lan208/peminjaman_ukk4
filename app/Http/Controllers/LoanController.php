@@ -9,18 +9,18 @@ use Illuminate\Support\Facades\Auth;
 
 class LoanController extends Controller
 {
-    // USER LIHAT DATA
+    // ================= ADMIN LIHAT SEMUA PEMINJAMAN =================
     public function index()
     {
         if (Auth::user()->role != 'admin') {
             abort(403);
         }
 
-        $loans = Loan::with('user', 'book')->get();
+        $loans = Loan::with('user', 'book')->latest()->get();
         return view('loans.index', compact('loans'));
     }
 
-    // USER PINJAM
+    // ================= USER PINJAM =================
     public function store(Request $request, $book_id)
     {
         $request->validate([
@@ -41,12 +41,13 @@ class LoanController extends Controller
             'tanggal_pinjam' => $request->tanggal_pinjam,
             'tanggal_kembali' => $request->tanggal_kembali,
             'jumlah' => $request->jumlah,
-            'status' => 'pending'
+            'status' => 'pending' // ✅ FIX
         ]);
 
         return back()->with('success', 'Menunggu approval admin');
     }
 
+    // ================= ADMIN APPROVE PINJAM =================
     public function approve($id)
     {
         if (Auth::user()->role != 'admin') {
@@ -69,18 +70,20 @@ class LoanController extends Controller
         return back()->with('success', 'Disetujui');
     }
 
+    // ================= ADMIN REJECT =================
     public function reject($id)
     {
-        $loan = Loan::findOrFail($id);
-
-        $loan->update(['status' => 'rejected']);
-
         if (Auth::user()->role != 'admin') {
             abort(403);
         }
 
+        $loan = Loan::findOrFail($id);
+        $loan->update(['status' => 'rejected']);
+
         return back()->with('success', 'Ditolak');
     }
+
+    // ================= USER HISTORY =================
     public function history()
     {
         $loans = Loan::with('book')
@@ -90,6 +93,8 @@ class LoanController extends Controller
 
         return view('loans.history', compact('loans'));
     }
+
+    // ================= USER REQUEST RETURN =================
     public function requestReturn($id)
     {
         $loan = Loan::findOrFail($id);
@@ -103,11 +108,13 @@ class LoanController extends Controller
         }
 
         $loan->update([
-            'status' => 'return_pending'
+            'status' => 'return_pending' // ✅ FIX
         ]);
 
         return back()->with('success', 'Menunggu approval pengembalian');
     }
+
+    // ================= ADMIN APPROVE RETURN =================
     public function approveReturn($id)
     {
         if (Auth::user()->role != 'admin') {
@@ -117,41 +124,38 @@ class LoanController extends Controller
         $loan = Loan::findOrFail($id);
         $book = Book::findOrFail($loan->book_id);
 
+        // kembalikan stok
         $book->increment('stok', $loan->jumlah);
 
         $loan->update([
-            'status' => 'returned',
+            'status' => 'returned', // ✅ FIX
             'tanggal_kembali' => now()
         ]);
 
         return back()->with('success', 'Pengembalian disetujui');
     }
-    public function returnRequests()
-    {
-        if (Auth::user()->role != 'admin') {
-            abort(403);
-        }
 
-        $loans = Loan::with('user', 'book')
-            ->where('status', 'return_pending')
-            ->get();
-
-        return view('loans.return', compact('loans'));
-    }
-
-    public function myLoans()
-    {
-        $loans = Loan::where('user_id', Auth::id())->get();
-        return view('loans.my', compact('loans'));
-    }
-
+    // ================= ADMIN LIHAT REQUEST RETURN =================
     public function returnIndex()
     {
         if (Auth::user()->role != 'admin') {
             abort(403);
         }
 
-        $loans = Loan::where('status_return', 'pending')->get();
+        $loans = Loan::with('user', 'book')
+            ->where('status', 'return_pending') // ✅ FIX
+            ->get();
+
         return view('loans.return', compact('loans'));
+    }
+
+    // ================= USER LIHAT PINJAMAN SENDIRI =================
+    public function myLoans()
+    {
+        $loans = Loan::with('book')
+            ->where('user_id', Auth::id())
+            ->get();
+
+        return view('loans.my', compact('loans'));
     }
 }
