@@ -12,7 +12,8 @@ use Illuminate\Database\Eloquent\Model;
         'penerbit',
         'tahun_terbit',
         'stok',
-        'category_id'
+        'category_id',
+        'image'
     ];
 
     public function loans()

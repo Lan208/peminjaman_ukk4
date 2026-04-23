@@ -31,10 +31,20 @@ class BookController extends Controller
             'penulis' => 'required',
             'penerbit' => 'required',
             'tahun_terbit' => 'required',
-            'stok' => 'required|integer'
+            'stok' => 'required|integer',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
         ]);
 
-        Book::create($request->all());
+        $data = $request->all();
+
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $filename = time() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('images'), $filename);
+            $data['image'] = $filename;
+        }
+
+        Book::create($data);
 
         return back()->with('success', 'Buku berhasil ditambahkan!');
     }
@@ -43,7 +53,16 @@ class BookController extends Controller
     {
         $book = Book::findOrFail($id);
 
-        $book->update($request->all());
+        $data = $request->all();
+
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $filename = time() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('images'), $filename);
+            $data['image'] = $filename;
+        }
+
+        $book->update($data);
 
         return back()->with('success', 'Buku berhasil diupdate!');
     }
@@ -54,5 +73,5 @@ class BookController extends Controller
         return back()->with('success', 'Buku berhasil dihapus!');
     }
 
-    
+
 }
