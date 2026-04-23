@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\LoanController;
+use App\Http\Controllers\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -61,3 +62,8 @@ Route::get('/loans/return', [LoanController::class, 'returnIndex']);
 
 // approve pengembalian
 Route::post('/approve-return/{id}', [LoanController::class, 'approveReturn']);
+
+// dashboard
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth'])
+    ->name('dashboard');
