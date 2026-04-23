@@ -4,18 +4,24 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Book extends Model
-{
-    protected $fillable = [
+    class Book extends Model
+    {
+        protected $fillable = [
         'judul',
         'penulis',
         'penerbit',
         'tahun_terbit',
-        'stok'
+        'stok',
+        'category_id'
     ];
 
     public function loans()
     {
         return $this->hasMany(Loan::class);
     }
+
+    public function category()
+{
+    return $this->belongsTo(Category::class);
+}
 }

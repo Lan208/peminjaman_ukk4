@@ -3,22 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\Loan;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Models\Book;
 use Illuminate\Support\Facades\Auth;
 
 class BookController extends Controller
 {
+
     public function index()
     {
-        $books = Book::all();
+        $books = Book::with('category')->get();
+        $categories = Category::all();
 
         $loans = Loan::where('user_id', Auth::id())
             ->whereIn('status', ['approved', 'return_pending'])
             ->get()
-            ->keyBy('book_id'); // penting!
+            ->keyBy('book_id');
 
-        return view('books.index', compact('books', 'loans'));
+        return view('books.index', compact('books', 'loans', 'categories'));
     }
 
     public function store(Request $request)
@@ -50,4 +53,6 @@ class BookController extends Controller
         Book::destroy($id);
         return back()->with('success', 'Buku berhasil dihapus!');
     }
+
+    
 }
