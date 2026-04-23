@@ -10,7 +10,7 @@ class AuthController extends Controller
     // TAMPILAN LOGIN
     public function loginForm()
     {
-        return view('login');
+        return view('auth.login');
     }
 
     // PROSES LOGIN

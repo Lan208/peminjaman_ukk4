@@ -52,29 +52,36 @@
 
                             <td class="px-3 py-2 flex gap-2 flex-wrap">
 
-                                {{-- PINJAM --}}
-                                @php $loan = $loans[$b->id] ?? null; @endphp
+                                {{-- USER ONLY (PINJAM & KEMBALIKAN) --}}
+                                @auth
+                                @if(auth()->user()->role != 'admin')
 
-                                @if($loan && in_array($loan->status, ['approved', 'return_pending']))
-                                    <button disabled class="bg-gray-400 text-white px-2 py-1 text-xs rounded">
-                                        Dipinjam
-                                    </button>
-                                @else
-                                    <button onclick="openModal('pinjamModal{{ $b->id }}')" 
-                                        class="bg-green-500 text-white px-2 py-1 text-xs rounded">
-                                        Pinjam
-                                    </button>
-                                @endif
+                                    @php $loan = $loans[$b->id] ?? null; @endphp
 
-                                {{-- KEMBALIKAN --}}
-                                @if($loan && $loan->status == 'approved')
-                                <form action="/return-request/{{ $loan->id }}" method="POST">
-                                    @csrf
-                                    <button class="bg-yellow-500 text-white px-2 py-1 text-xs rounded">
-                                        Kembalikan
-                                    </button>
-                                </form>
+                                    {{-- PINJAM --}}
+                                    @if($loan && in_array($loan->status, ['approved', 'return_pending']))
+                                        <button disabled class="bg-gray-400 text-white px-2 py-1 text-xs rounded">
+                                            Dipinjam
+                                        </button>
+                                    @else
+                                        <button onclick="openModal('pinjamModal{{ $b->id }}')" 
+                                            class="bg-green-500 text-white px-2 py-1 text-xs rounded">
+                                            Pinjam
+                                        </button>
+                                    @endif
+
+                                    {{-- KEMBALIKAN --}}
+                                    @if($loan && $loan->status == 'approved')
+                                    <form action="/return-request/{{ $loan->id }}" method="POST">
+                                        @csrf
+                                        <button class="bg-yellow-500 text-white px-2 py-1 text-xs rounded">
+                                            Kembalikan
+                                        </button>
+                                    </form>
+                                    @endif
+
                                 @endif
+                                @endauth
 
                                 {{-- ADMIN ONLY --}}
                                 @auth
@@ -100,7 +107,9 @@
                             </td>
                         </tr>
 
-                        {{-- MODAL PINJAM --}}
+                        {{-- MODAL PINJAM (USER ONLY) --}}
+                        @auth
+                        @if(auth()->user()->role != 'admin')
                         <div id="pinjamModal{{ $b->id }}" class="hidden fixed inset-0 bg-black/30 flex justify-center items-center">
                             <div class="bg-white p-4 rounded w-80">
                                 <form action="/pinjam/{{ $b->id }}" method="POST">
@@ -116,6 +125,8 @@
                                 </form>
                             </div>
                         </div>
+                        @endif
+                        @endauth
 
                         {{-- MODAL EDIT (ADMIN ONLY) --}}
                         @auth

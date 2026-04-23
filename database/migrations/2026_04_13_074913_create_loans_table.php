@@ -17,7 +17,13 @@ return new class extends Migration {
             $table->date('tanggal_pinjam');
             $table->date('tanggal_kembali');
             $table->date('tanggal_pengembalian')->nullable();
-            $table->enum('status', ['pending', 'approved', 'rejected', 'returned']);
+            $table->enum('status', [
+                'pending',
+                'approved',
+                'rejected',
+                'return_pending',
+                'returned'
+            ]);
             $table->enum('status_return', ['pending', 'approved'])->nullable();
             $table->integer('jumlah')->default(1);
             $table->timestamps();
