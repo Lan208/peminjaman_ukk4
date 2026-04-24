@@ -12,9 +12,12 @@ class Loan extends Model
         'tanggal_pinjam',
         'tanggal_kembali',
         'jumlah',
-        'status'
+        'status',
+        'denda_telat',
+        'denda_kerusakan',
+        'denda_total', 
+        'kondisi_buku',
     ];
-
     public function user()
     {
         return $this->belongsTo(User::class);

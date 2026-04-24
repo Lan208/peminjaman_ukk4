@@ -43,7 +43,7 @@ Route::post('/pinjam/{id}', [LoanController::class, 'store']);
 Route::post('/return-request/{id}', [LoanController::class, 'requestReturn']);
 Route::get('/my-loans', [LoanController::class, 'myLoans']);
 Route::get('/history', [LoanController::class, 'history']);
-
+Route::get('/riwayat', [LoanController::class, 'riwayat'])->name('riwayat');
 /*
 |--------------------------------------------------------------------------
 | ADMIN ACTION

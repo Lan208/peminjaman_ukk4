@@ -88,19 +88,17 @@
                                         @if(auth()->user()->role != 'admin')
                                             @php $loan = $loans[$b->id] ?? null; @endphp
 
-                                            {{-- PINJAM --}}
                                             @if($loan && in_array($loan->status, ['approved', 'return_pending']))
                                                 <button disabled class="bg-gray-500/50 text-white/70 px-3 py-1.5 text-xs rounded-xl cursor-not-allowed flex items-center gap-1">
                                                     <i class="fas fa-clock"></i> Dipinjam
                                                 </button>
                                             @else
-                                                <button onclick="openModal('pinjamModal{{ $b->id }}')"
+                                                <button onclick="openPinjamModal({{ $b->id }}, {{ $b->stok }})"
                                                     class="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-3 py-1.5 text-xs rounded-xl transition flex items-center gap-1">
                                                     <i class="fas fa-hand-holding-heart"></i> Pinjam
                                                 </button>
                                             @endif
 
-                                            {{-- KEMBALIKAN --}}
                                             @if($loan && $loan->status == 'approved')
                                                 <form action="/return-request/{{ $loan->id }}" method="POST">
                                                     @csrf
@@ -115,7 +113,7 @@
                                     {{-- ADMIN ONLY --}}
                                     @auth
                                         @if(auth()->user()->role == 'admin')
-                                            <button onclick="openModal('editModal{{ $b->id }}')"
+                                            <button onclick="openEditModal({{ $b->id }})"
                                                 class="bg-cyan-500/80 hover:bg-cyan-600 text-white px-3 py-1.5 text-xs rounded-xl transition flex items-center gap-1">
                                                 <i class="fas fa-edit"></i> Edit
                                             </button>
@@ -133,150 +131,6 @@
                                 </div>
                             </td>
                         </tr>
-
-                        {{-- MODAL PINJAM (USER ONLY) --}}
-                        @auth
-                            @if(auth()->user()->role != 'admin')
-                                <div id="pinjamModal{{ $b->id }}"
-                                    class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
-                                    <div class="bg-gradient-to-br from-white to-cyan-50 rounded-2xl w-96 shadow-2xl animate-fade-in">
-                                        <div class="p-6">
-                                            <div class="flex items-center gap-3 mb-4 border-b border-cyan-200 pb-3">
-                                                <div class="w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center">
-                                                    <i class="fas fa-hand-holding-heart text-white"></i>
-                                                </div>
-                                                <h2 class="font-bold text-cyan-800 text-lg">Pinjam Buku</h2>
-                                            </div>
-
-                                            <form action="/pinjam/{{ $b->id }}" method="POST">
-                                                @csrf
-                                                <div class="mb-4">
-                                                    <label class="text-xs text-cyan-700 font-medium block mb-1">
-                                                        <i class="fas fa-calendar-alt mr-1"></i> Tanggal Pinjam
-                                                    </label>
-                                                    <input type="date" name="tanggal_pinjam" 
-                                                        class="w-full border border-cyan-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-400">
-                                                </div>
-
-                                                <div class="mb-4">
-                                                    <label class="text-xs text-cyan-700 font-medium block mb-1">
-                                                        <i class="fas fa-calendar-check mr-1"></i> Tanggal Kembali
-                                                    </label>
-                                                    <input type="date" name="tanggal_kembali" 
-                                                        class="w-full border border-cyan-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-400">
-                                                </div>
-
-                                                <div class="mb-5">
-                                                    <label class="text-xs text-cyan-700 font-medium block mb-1">
-                                                        <i class="fas fa-sort-amount-up mr-1"></i> Jumlah (Maks: {{ $b->stok }})
-                                                    </label>
-                                                    <input type="number" name="jumlah" max="{{ $b->stok }}" value="1"
-                                                        class="w-full border border-cyan-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-400">
-                                                </div>
-
-                                                <div class="flex justify-end gap-3">
-                                                    <button type="button" onclick="closeModal('pinjamModal{{ $b->id }}')"
-                                                        class="text-gray-500 hover:text-gray-700 px-4 py-2 rounded-xl transition">
-                                                        Batal
-                                                    </button>
-                                                    <button class="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-5 py-2 rounded-xl transition shadow-md">
-                                                        <i class="fas fa-paper-plane mr-1"></i> Kirim
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-                        @endauth
-
-                        {{-- MODAL EDIT (ADMIN ONLY) --}}
-                        @auth
-                            @if(auth()->user()->role == 'admin')
-                                <div id="editModal{{ $b->id }}"
-                                    class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
-                                    <div class="bg-gradient-to-br from-white to-cyan-50 rounded-2xl w-[500px] max-w-[90vw] shadow-2xl animate-fade-in">
-                                        <div class="p-6">
-                                            <div class="flex items-center gap-3 mb-4 border-b border-cyan-200 pb-3">
-                                                <div class="w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center">
-                                                    <i class="fas fa-edit text-white"></i>
-                                                </div>
-                                                <h2 class="font-bold text-cyan-800 text-lg">Edit Buku</h2>
-                                            </div>
-
-                                            <form method="POST" action="/books/{{ $b->id }}" enctype="multipart/form-data">
-                                                @csrf
-                                                @method('PUT')
-
-                                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                    <div class="sm:col-span-2">
-                                                        <label class="text-xs text-cyan-700 font-medium block mb-1">Judul</label>
-                                                        <input type="text" name="judul" value="{{ $b->judul }}"
-                                                            class="w-full border border-cyan-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-400">
-                                                    </div>
-
-                                                    <div>
-                                                        <label class="text-xs text-cyan-700 font-medium block mb-1">Kategori</label>
-                                                        <select name="category_id" class="w-full border border-cyan-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-400">
-                                                            <option value="">Pilih Kategori</option>
-                                                            @foreach($categories as $c)
-                                                                <option value="{{ $c->id }}" {{ $b->category_id == $c->id ? 'selected' : '' }}>
-                                                                    {{ $c->nama }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-                                                    </div>
-
-                                                    <div>
-                                                        <label class="text-xs text-cyan-700 font-medium block mb-1">Penulis</label>
-                                                        <input type="text" name="penulis" value="{{ $b->penulis }}"
-                                                            class="w-full border border-cyan-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-400">
-                                                    </div>
-
-                                                    <div>
-                                                        <label class="text-xs text-cyan-700 font-medium block mb-1">Penerbit</label>
-                                                        <input type="text" name="penerbit" value="{{ $b->penerbit }}"
-                                                            class="w-full border border-cyan-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-400">
-                                                    </div>
-
-                                                    <div>
-                                                        <label class="text-xs text-cyan-700 font-medium block mb-1">Tahun Terbit</label>
-                                                        <input type="number" name="tahun_terbit" value="{{ $b->tahun_terbit }}"
-                                                            class="w-full border border-cyan-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-400">
-                                                    </div>
-
-                                                    <div>
-                                                        <label class="text-xs text-cyan-700 font-medium block mb-1">Stok</label>
-                                                        <input type="number" name="stok" value="{{ $b->stok }}"
-                                                            class="w-full border border-cyan-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-400">
-                                                    </div>
-
-                                                    <div class="sm:col-span-2">
-                                                        <label class="text-xs text-cyan-700 font-medium block mb-1">Gambar</label>
-                                                        <input type="file" name="image" 
-                                                            class="w-full border border-cyan-200 rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-cyan-400">
-                                                        @if($b->image)
-                                                            <p class="text-xs text-cyan-500 mt-1">Gambar saat ini: {{ $b->image }}</p>
-                                                        @endif
-                                                    </div>
-                                                </div>
-
-                                                <div class="flex justify-end gap-3 mt-5">
-                                                    <button type="button" onclick="closeModal('editModal{{ $b->id }}')"
-                                                        class="text-gray-500 hover:text-gray-700 px-4 py-2 rounded-xl transition">
-                                                        Batal
-                                                    </button>
-                                                    <button class="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-5 py-2 rounded-xl transition shadow-md">
-                                                        <i class="fas fa-save mr-1"></i> Update
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-                        @endauth
-
                     @endforeach
                 </tbody>
             </table>
@@ -293,7 +147,144 @@
     </div>
 </div>
 
-{{-- MODAL TAMBAH (ADMIN ONLY) --}}
+{{-- ==================== MODAL PINJAM (1 MODAL SAJA) ==================== --}}
+@auth
+    @if(auth()->user()->role != 'admin')
+        <div id="pinjamModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
+            <div class="bg-gradient-to-br from-white to-cyan-50 rounded-2xl w-96 shadow-2xl animate-fade-in">
+                <div class="p-6">
+                    <div class="flex items-center gap-3 mb-4 border-b border-cyan-200 pb-3">
+                        <div class="w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-hand-holding-heart text-white"></i>
+                        </div>
+                        <h2 class="font-bold text-cyan-800 text-lg">Pinjam Buku</h2>
+                    </div>
+
+                    <form id="pinjamForm" method="POST">
+                        @csrf
+                        <div class="mb-4">
+                            <label class="text-xs text-cyan-700 font-medium block mb-1">
+                                <i class="fas fa-calendar-alt mr-1"></i> Tanggal Pinjam
+                            </label>
+                            <input type="date" name="tanggal_pinjam" id="tanggal_pinjam"
+                                class="w-full border border-cyan-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="text-xs text-cyan-700 font-medium block mb-1">
+                                <i class="fas fa-calendar-check mr-1"></i> Tanggal Kembali
+                            </label>
+                            <input type="date" name="tanggal_kembali" id="tanggal_kembali"
+                                class="w-full border border-cyan-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                        </div>
+
+                        <div class="mb-5">
+                            <label class="text-xs text-cyan-700 font-medium block mb-1">
+                                <i class="fas fa-sort-amount-up mr-1"></i> Jumlah (Maks: <span id="maxStok"></span>)
+                            </label>
+                            <input type="number" name="jumlah" id="jumlah" max="" value="1"
+                                class="w-full border border-cyan-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                        </div>
+
+                        <div class="flex justify-end gap-3">
+                            <button type="button" onclick="closeModal('pinjamModal')"
+                                class="text-gray-500 hover:text-gray-700 px-4 py-2 rounded-xl transition">
+                                Batal
+                            </button>
+                            <button type="submit" class="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-5 py-2 rounded-xl transition shadow-md">
+                                <i class="fas fa-paper-plane mr-1"></i> Kirim
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
+@endauth
+
+{{-- ==================== MODAL EDIT (1 MODAL SAJA) ==================== --}}
+@auth
+    @if(auth()->user()->role == 'admin')
+        <div id="editModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
+            <div class="bg-gradient-to-br from-white to-cyan-50 rounded-2xl w-[500px] max-w-[90vw] shadow-2xl animate-fade-in">
+                <div class="p-6">
+                    <div class="flex items-center gap-3 mb-4 border-b border-cyan-200 pb-3">
+                        <div class="w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-edit text-white"></i>
+                        </div>
+                        <h2 class="font-bold text-cyan-800 text-lg">Edit Buku</h2>
+                    </div>
+
+                    <form id="editForm" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="sm:col-span-2">
+                                <label class="text-xs text-cyan-700 font-medium block mb-1">Judul</label>
+                                <input type="text" name="judul" id="edit_judul"
+                                    class="w-full border border-cyan-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                            </div>
+
+                            <div>
+                                <label class="text-xs text-cyan-700 font-medium block mb-1">Kategori</label>
+                                <select name="category_id" id="edit_category_id" class="w-full border border-cyan-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                    <option value="">Pilih Kategori</option>
+                                    @foreach($categories as $c)
+                                        <option value="{{ $c->id }}">{{ $c->nama }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="text-xs text-cyan-700 font-medium block mb-1">Penulis</label>
+                                <input type="text" name="penulis" id="edit_penulis"
+                                    class="w-full border border-cyan-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                            </div>
+
+                            <div>
+                                <label class="text-xs text-cyan-700 font-medium block mb-1">Penerbit</label>
+                                <input type="text" name="penerbit" id="edit_penerbit"
+                                    class="w-full border border-cyan-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                            </div>
+
+                            <div>
+                                <label class="text-xs text-cyan-700 font-medium block mb-1">Tahun Terbit</label>
+                                <input type="number" name="tahun_terbit" id="edit_tahun_terbit"
+                                    class="w-full border border-cyan-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                            </div>
+
+                            <div>
+                                <label class="text-xs text-cyan-700 font-medium block mb-1">Stok</label>
+                                <input type="number" name="stok" id="edit_stok"
+                                    class="w-full border border-cyan-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label class="text-xs text-cyan-700 font-medium block mb-1">Gambar</label>
+                                <input type="file" name="image" id="edit_image"
+                                    class="w-full border border-cyan-200 rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                <p id="currentImage" class="text-xs text-cyan-500 mt-1"></p>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end gap-3 mt-5">
+                            <button type="button" onclick="closeModal('editModal')"
+                                class="text-gray-500 hover:text-gray-700 px-4 py-2 rounded-xl transition">
+                                Batal
+                            </button>
+                            <button type="submit" class="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-5 py-2 rounded-xl transition shadow-md">
+                                <i class="fas fa-save mr-1"></i> Update
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
+@endauth
+
+{{-- MODAL TAMBAH --}}
 @auth
     @if(auth()->user()->role == 'admin')
         <div id="addModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
@@ -373,11 +364,57 @@
 @endauth
 
 <script>
+    // Data buku dari server
+    const booksData = @json($books->keyBy('id'));
+    const categoriesData = @json($categories);
+
     function openModal(id) {
         document.getElementById(id).classList.remove('hidden');
     }
+    
     function closeModal(id) {
         document.getElementById(id).classList.add('hidden');
+    }
+
+    // Buka modal pinjam dengan data dinamis
+    function openPinjamModal(bookId, stok) {
+        const form = document.getElementById('pinjamForm');
+        form.action = '/pinjam/' + bookId;
+        document.getElementById('maxStok').innerText = stok;
+        document.getElementById('jumlah').max = stok;
+        document.getElementById('jumlah').value = 1;
+        
+        // Set default tanggal
+        const today = new Date().toISOString().split('T')[0];
+        const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        document.getElementById('tanggal_pinjam').value = today;
+        document.getElementById('tanggal_kembali').value = nextWeek;
+        
+        openModal('pinjamModal');
+    }
+
+    // Buka modal edit dengan data dinamis
+    function openEditModal(bookId) {
+        const book = booksData[bookId];
+        if (!book) return;
+        
+        const form = document.getElementById('editForm');
+        form.action = '/books/' + bookId;
+        
+        document.getElementById('edit_judul').value = book.judul || '';
+        document.getElementById('edit_penulis').value = book.penulis || '';
+        document.getElementById('edit_penerbit').value = book.penerbit || '';
+        document.getElementById('edit_tahun_terbit').value = book.tahun_terbit || '';
+        document.getElementById('edit_stok').value = book.stok || '';
+        document.getElementById('edit_category_id').value = book.category_id || '';
+        
+        if (book.image) {
+            document.getElementById('currentImage').innerHTML = 'Gambar saat ini: ' + book.image;
+        } else {
+            document.getElementById('currentImage').innerHTML = '';
+        }
+        
+        openModal('editModal');
     }
 
     // Tutup modal klik di luar

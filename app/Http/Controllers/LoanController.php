@@ -115,24 +115,58 @@ class LoanController extends Controller
     }
 
     // ================= ADMIN APPROVE RETURN =================
-    public function approveReturn($id)
+    // ================= ADMIN APPROVE RETURN =================
+    public function approveReturn(Request $request, $id)
     {
         if (Auth::user()->role != 'admin') {
             abort(403);
         }
 
+        $request->validate([
+            'kondisi_buku' => 'required|in:baik,rusak_ringan,rusak_berat,hilang',
+        ]);
+
+        // Tarif denda per kondisi (sesuaikan sesukamu)
+        $tarifKondisi = [
+            'baik' => 0,
+            'rusak_ringan' => 25000,
+            'rusak_berat' => 75000,
+            'hilang' => 150000,
+        ];
+
         $loan = Loan::findOrFail($id);
         $book = Book::findOrFail($loan->book_id);
 
-        // kembalikan stok
-        $book->increment('stok', $loan->jumlah);
+        // Hitung denda keterlambatan
+        $tanggalKembaliRencana = \Carbon\Carbon::parse($loan->tanggal_kembali);
+        $tanggalKembaliAktual = now();
+        $hariTelat = max(0, $tanggalKembaliAktual->diffInDays($tanggalKembaliRencana, false) * -1);
+
+        $tarifPerHari = 1000; // Rp 1.000/hari
+        $dendaTelat = $hariTelat * $tarifPerHari;
+        $dendaKerusakan = $tarifKondisi[$request->kondisi_buku];
+        $dendaTotal = $dendaTelat + $dendaKerusakan;
+
+        // Kembalikan stok (kecuali hilang — buku tidak kembali)
+        if ($request->kondisi_buku !== 'hilang') {
+            $book->increment('stok', $loan->jumlah);
+        }
 
         $loan->update([
-            'status' => 'returned', // ✅ FIX
-            'tanggal_kembali' => now()
+            'status' => 'returned',
+            'tanggal_kembali' => $tanggalKembaliAktual,
+            'kondisi_buku' => $request->kondisi_buku,   // ← kolom baru
+            'denda_telat' => $dendaTelat,
+            'denda_kerusakan' => $dendaKerusakan,
+            'denda_total' => $dendaTotal,
         ]);
 
-        return back()->with('success', 'Pengembalian disetujui');
+        $pesan = 'Pengembalian disetujui. Kondisi: ' . ucfirst(str_replace('_', ' ', $request->kondisi_buku)) . '.';
+        if ($dendaTotal > 0) {
+            $pesan .= ' Denda: Rp ' . number_format($dendaTotal, 0, ',', '.');
+        }
+
+        return back()->with('success', $pesan);
     }
 
     // ================= ADMIN LIHAT REQUEST RETURN =================
@@ -158,4 +192,15 @@ class LoanController extends Controller
 
         return view('loans.my', compact('loans'));
     }
+
+    public function riwayat()
+    {
+        $loans = Loan::where('user_id', auth()->id())
+            ->with('book')
+            ->latest()
+            ->get();
+
+        return view('loans.riwayat', compact('loans')); // pakai titik bukan slash
+    }
+
 }

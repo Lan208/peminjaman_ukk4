@@ -9,7 +9,7 @@
             <div class="w-16 h-16 mx-auto bg-gradient-to-br from-cyan-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg mb-3">
                 <i class="fas fa-ship text-white text-3xl"></i>
             </div>
-            <h3 class="text-white font-bold text-lg">Sea Library</h3>
+            <h3 class="text-white font-bold text-lg">Fadlan Perpustakaan</h3>
             <p class="text-xs text-cyan-200 mt-1">Sistem Peminjaman Buku</p>
         </div>
 
@@ -52,10 +52,29 @@
                     </a>
                 </li>
 
+                {{-- 🔥 USER ONLY: RIWAYAT --}}
+                @if(auth()->user()->role != 'admin')
+
+                <li class="pt-4 mt-3">
+                    <div class="border-t border-white/10"></div>
+                    <p class="text-xs text-cyan-300/60 uppercase tracking-wider mt-4 px-4">Aktivitas</p>
+                </li>
+
+                <li>
+                    <a href="/riwayat"
+                       class="flex items-center gap-3 px-4 py-3 rounded-xl text-cyan-100 
+                              hover:bg-white/10 hover:text-white transition-all duration-300
+                              {{ request()->is('riwayat') ? 'bg-white/15 text-white border-l-4 border-cyan-400' : '' }}">
+                        <i class="fas fa-history w-5 text-cyan-300"></i>
+                        <span class="font-medium">Riwayat</span>
+                    </a>
+                </li>
+
+                @endif
+
                 {{-- ADMIN MENU SECTION --}}
                 @if(auth()->user()->role == 'admin')
                 
-                {{-- DIVIDER --}}
                 <li class="pt-4 mt-3">
                     <div class="border-t border-white/10"></div>
                     <p class="text-xs text-cyan-300/60 uppercase tracking-wider mt-4 px-4">Manajemen</p>
@@ -71,7 +90,6 @@
                     </a>
                 </li>
 
-                {{-- PEMINJAMAN --}}
                 <li>
                     <a href="/loans"
                        class="flex items-center gap-3 px-4 py-3 rounded-xl text-cyan-100 
@@ -82,7 +100,6 @@
                     </a>
                 </li>
 
-                {{-- PENGEMBALIAN --}}
                 <li>
                     <a href="/loans/return"
                        class="flex items-center gap-3 px-4 py-3 rounded-xl text-cyan-100 
@@ -106,7 +123,7 @@
                 </div>
                 <div>
                     <p class="text-white text-xs font-medium">Keep Reading</p>
-                    <p class="text-cyan-300/50 text-[10px]">© 2024 Sea Library</p>
+                    <p class="text-cyan-300/50 text-[10px]">Fadlan Perpustakaan</p>
                 </div>
             </div>
         </div>

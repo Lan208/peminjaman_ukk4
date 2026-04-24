@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Book;
+use App\Models\Loan;
+use App\Models\User;
+
 
 class AuthController extends Controller
 {
@@ -56,6 +60,16 @@ class AuthController extends Controller
     }
     public function dashboard()
     {
-        return view('dashboard');
+        $totalBooks = Book::count();
+        $totalUsers = User::count();
+        $totalLoans = Loan::count();
+        $totalDipinjam = Loan::where('status', 'approved')->count();
+
+        return view('dashboard', compact(
+            'totalBooks',
+            'totalUsers',
+            'totalLoans',
+            'totalDipinjam'
+        ));
     }
 }
